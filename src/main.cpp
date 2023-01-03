@@ -79,28 +79,19 @@ ON_APPLICATION_REQUESTS_EXIT() {
   } else if (titleID == 0) {
     return;
   }
+  // need to be aligned to 0x40 for IOSU
+  auto *meta = (ACPMetaXml *)aligned_alloc(0x40, sizeof(ACPMetaXml));
 
-  uint32_t title_type = titleID >> 32;
-  uint16_t title_gid_high = (titleID >> 16) & 0xffff;
-  uint16_t title_gid_low = titleID & 0xffff;
-
-  if (title_type == 0x00050002 &&
-      (title_gid_high >= 0x3000 &&
-       title_gid_low >= 0x3000)) { // UWUVCI AIO Injected game
-    // need to be aligned to 0x40 for IOSU
-    auto *meta = (ACPMetaXml *)aligned_alloc(0x40, sizeof(ACPMetaXml));
-
-    if (!meta) {
-      return;
-    }
-
-    ACPResult result = ACPGetTitleMetaXml(titleID, meta);
-    if (result == ACPResult::ACP_RESULT_SUCCESS) {
-      setDiscordStatus(token, meta->shortname_en);
-    }
-
-    free(meta);
+  if (!meta) {
+    return;
   }
+
+  ACPResult result = ACPGetTitleMetaXml(titleID, meta);
+  if (result == ACPResult::ACP_RESULT_SUCCESS) {
+    setDiscordStatus(token, meta->shortname_en);
+  }
+
+  free(meta);
 
   titleID = 0;
 }
